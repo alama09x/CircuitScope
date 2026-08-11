@@ -5,3 +5,9 @@ export interface Oscilloscope {
     serialNumber: string,
     firmwareRevision: string,
 }
+
+export interface Cosine {
+    amplitude: number,
+    frequency: number,
+    phase: number,
+}
