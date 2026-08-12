@@ -2,8 +2,11 @@ from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 import json
 
+from .device import Device
+from .dm import DeviceManager
+from .oscope import Oscilloscope
+
 from .sinusoid import Cosine
-from .dm import DeviceManager, Oscilloscope
 
 dm = DeviceManager()
 app = FastAPI()
@@ -16,43 +19,68 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
-@app.get("/oscopes")
-async def get_oscopes() -> str:
-    dm.update_oscopes()
-    objs = list(map(Oscilloscope.to_obj, dm.oscopes))
-    if dm.selected_oscope is not None:
-        selected = dm.oscopes.index(dm.selected_oscope)
+def update_devices(type: str) -> str:
+    dm.update_devices(type)
+    objs = list(map(Device.to_obj, dm.devices[type]))
+    if dm.selected[type] is not None:
+        selected = dm.devices[type].index(dm.selected[type])
     else:
         selected = -1
     
-    return json.dumps({"selected": selected, "oscopes": objs})
+    return json.dumps({"selected": selected, f"{type}s": objs})
 
-@app.get("/measure/{qty}/{src}")
-async def measure(qty: str, src: str) -> str:
-    return json.dumps({ "value": dm.selected_oscope.measure_quantity(qty, src) })
-
-@app.get("/sinusoid/{src}/{ref}")
-async def measure_sinusoid(src: str, ref: str) -> str:
-    if dm.selected_oscope is None: return ""
-    cos = dm.selected_oscope.measure_sinusoid(src, ref)
-    return json.dumps(cos.to_obj())
-
-@app.get("/sinusoid/{src}")
-async def measure_sinusoid2(src: str) -> str:
-    if dm.selected_oscope is None: return ""
-    cos = dm.selected_oscope.measure_sinusoid(src, None)
-    return json.dumps(cos.to_obj())
-
-@app.put("/put-oscope/{res_str}")
-async def put_oscope(res_str: str):
+@app.get("/update")
+def update_all_devices() -> str:
+    result = {}
+    for type in dm.devices.keys():
+        dm.update_devices(type)
+        objs = list(map(Device.to_obj, dm.devices[type]))
+        if dm.selected[type] is not None:
+            selected = dm.devices[type].index(dm.selected[type])
+        else:
+            selected = -1
+        result[type] = {"selected": selected, "devices": objs}
+    res = json.dumps(result)
+    print(res)
+    return(res)
+    
+def put_device(type: str, res_str: str):
     if res_str == "null":
-        dm.selected_oscope = None
+        dm.selected[type] = None
 
-    dm.selected_oscope = next((o for o in dm.oscopes if o.res_str == res_str), None)
+    dm.selected[type] = next((o for o in dm.devices[type] if o.res_str == res_str), None)
+    
+@app.put("/put/{type}/{res_str}")
+async def put_oscope(type: str, res_str: str):
+    put_device(type, res_str)
 
-@app.get("/error")
+@app.get("/get/{type}")
+async def update_devices(type: str) -> str:
+    return update_devices(type)
+
+@app.get("/oscope/measure/{qty}/{src}")
+async def measure(qty: str, src: str) -> str:
+    oscope = dm.selected["oscope"]
+    return json.dumps({ "value": oscope.measure_quantity(qty, src) })
+
+@app.get("/oscope/sinusoid/{src}/{ref}")
+async def measure_sinusoid(src: str, ref: str) -> str:
+    oscope = dm.selected["oscope"]
+    if oscope is None: return ""
+
+    cos = oscope.measure_sinusoid(src, ref)
+    return json.dumps(cos.to_obj())
+
+@app.get("/oscope/sinusoid/{src}")
+async def measure_sinusoid2(src: str) -> str:
+    oscope = dm.selected["oscope"]
+    if oscope is None: return ""
+    cos = oscope.measure_sinusoid(src, None)
+    return json.dumps(cos.to_obj())
+
+@app.get("/ocsope/error")
 async def get_error() -> str:
-    if dm.selected_oscope is not None:
-        return dm.selected_oscope.show_error()
+    if dm.selected["oscope"] is not None:
+        return dm.selected["oscope"].show_error()
     else:
         return "No oscilloscope connected"

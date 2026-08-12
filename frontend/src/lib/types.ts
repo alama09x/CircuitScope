@@ -1,4 +1,4 @@
-export interface Oscilloscope {
+export interface Device {
     resStr: string,
     manufacturer: string,
     model: string,
