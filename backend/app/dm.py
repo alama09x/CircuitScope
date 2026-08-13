@@ -3,10 +3,11 @@ from pyvisa import ResourceManager
 from .device import Device
 from .oscope import Oscilloscope
 from .fgen import FunctionGenerator
+# import serial
 
 MODEL_SELECTION: dict[str, list[str]] = {
     "oscope": ["DS1", "DHO", "DSO"],
-    "fgen": [],
+    "fgen": ["BG03TBZL"],
 }
 
 class DeviceManager:
@@ -19,9 +20,10 @@ class DeviceManager:
     def find_device_strs(self, models: list[str]) -> list[str]:
         resources = self.rm.list_resources()
 
+        print(resources)
         def is_valid_device(s: str) -> bool:
             for model in models:
-                if f"::{model}" in s:
+                if model in s:
                     return True
             return False
 
@@ -47,4 +49,3 @@ class DeviceManager:
         # If selected device was removed, but list has one elem, set it
         if (self.selected[type] is None and len(self.devices[type]) == 1):
             self.selected[type] = self.devices[type][0]
-        pass

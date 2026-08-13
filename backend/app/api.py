@@ -41,18 +41,15 @@ def update_all_devices() -> str:
             selected = -1
         result[type] = {"selected": selected, "devices": objs}
     res = json.dumps(result)
-    print(res)
     return(res)
     
-def put_device(type: str, res_str: str):
+@app.put("/put/{type}/{res_str:path}")
+async def put_device(type: str, res_str: str):
     if res_str == "null":
         dm.selected[type] = None
+        return
 
     dm.selected[type] = next((o for o in dm.devices[type] if o.res_str == res_str), None)
-    
-@app.put("/put/{type}/{res_str}")
-async def put_oscope(type: str, res_str: str):
-    put_device(type, res_str)
 
 @app.get("/get/{type}")
 async def update_devices(type: str) -> str:

@@ -52,7 +52,7 @@
 
 	const updateSelected = async (type: DeviceIndex) => {
 		const sel = selected[type];
-		const res_str = sel !== -1 ? devices[type][sel].resStr : 'null';
+		let res_str = encodeURIComponent(sel !== -1 ? devices[type][sel].resStr : 'null');
 		await fetch(`http://localhost:8000/put/${type}/${res_str}`, { method: 'PUT' });
 	};
 
