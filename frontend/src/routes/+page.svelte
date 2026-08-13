@@ -70,6 +70,19 @@
 		cos2 = JSON.parse(response2);
 	};
 
+	const sineWave = async () => {
+		await fetch('http://localhost:8000/fgen/apply/SIN/1.0E+3/1.0E+1');
+	};
+	const squareWave = async () => {
+		await fetch('http://localhost:8000/fgen/apply/SQU/1.0E+3/1.0E+1');
+	};
+	const ramp = async () => {
+		await fetch('http://localhost:8000/fgen/apply/RAMP/1.0E+3/1.0E+1');
+	};
+	const pulse = async () => {
+		await fetch('http://localhost:8000/fgen/pulse/5.0E-1');
+	};
+
 	// Runs every 3 seconds
 	const update = async () => {
 		await updateDevices();
@@ -139,3 +152,9 @@
 		</div>
 	{/if}
 {/each}
+{#if selected.fgen !== -1}
+	<button onclick={sineWave}>Sine Wave!</button>
+	<button onclick={squareWave}>Square Wave!</button>
+	<button onclick={ramp}>Ramp!</button>
+	<button onclick={pulse}>Pulse!</button>
+{/if}

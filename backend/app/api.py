@@ -51,6 +51,31 @@ async def put_device(type: str, res_str: str):
 
     dm.selected[type] = next((o for o in dm.devices[type] if o.res_str == res_str), None)
 
+@app.get('/fgen/apply/{waveform}/{freq}/{ampl}/{offset}')
+async def fgen_apply(waveform: str, freq: str, ampl: str, offset: str) -> str:
+    dm.selected["fgen"].apply(waveform, freq, ampl, offset)
+    return ""
+
+@app.get('/fgen/apply/{waveform}/{freq}/{ampl}')
+async def fgen_apply1(waveform: str, freq: str, ampl: str) -> str:
+    dm.selected["fgen"].apply(waveform, freq, ampl, None)
+    return ""
+
+@app.get('/fgen/apply/{waveform}/{freq}')
+async def fgen_apply2(waveform: str, freq: str) -> str:
+    dm.selected["fgen"].apply(waveform, freq, None, None)
+    return ""
+
+@app.get('/fgen/pulse/{period}')
+async def fgen_pulse(period: str) -> str:
+    dm.selected["fgen"].res.write(f":PULS:PER {period}")
+    return ""
+
+@app.get('/fgen/apply/{waveform}')
+async def fgen_apply3(waveform: str) -> str:
+    dm.selected["fgen"].apply(waveform, None, None, None)
+    return ""
+
 @app.get("/get/{type}")
 async def update_devices(type: str) -> str:
     return update_devices(type)
