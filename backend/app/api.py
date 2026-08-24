@@ -2,14 +2,13 @@ from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 import json
 
+from .analysis import CircuitAnalysis
 from .device import Device
 from .dm import DeviceManager
-from .oscope import Oscilloscope
-
-from .sinusoid import Cosine
 
 dm = DeviceManager()
 app = FastAPI()
+analysis: CircuitAnalysis | None = None
 
 app.add_middleware(
     CORSMiddleware,
@@ -21,7 +20,7 @@ app.add_middleware(
 
 def update_devices(type: str) -> str:
     dm.update_devices(type)
-    objs = list(map(Device.to_obj, dm.devices[type]))
+    objs = list(map(Device.to_json, dm.devices[type]))
     if dm.selected[type] is not None:
         selected = dm.devices[type].index(dm.selected[type])
     else:
@@ -34,7 +33,7 @@ def update_all_devices() -> str:
     result = {}
     for type in dm.devices.keys():
         dm.update_devices(type)
-        objs = list(map(Device.to_obj, dm.devices[type]))
+        objs = list(map(Device.to_json, dm.devices[type]))
         if dm.selected[type] is not None:
             selected = dm.devices[type].index(dm.selected[type])
         else:
@@ -76,6 +75,11 @@ async def fgen_apply3(waveform: str) -> str:
     dm.selected["fgen"].apply(waveform, None, None, None)
     return ""
 
+@app.get('/analyze')
+async def analyze() -> str:
+    analysis = await CircuitAnalysis.create(dm)
+    return json.dumps(analysis.to_json())
+
 @app.get("/get/{type}")
 async def update_devices(type: str) -> str:
     return update_devices(type)
@@ -100,7 +104,7 @@ async def measure_sinusoid2(src: str) -> str:
     cos = oscope.measure_sinusoid(src, None)
     return json.dumps(cos.to_obj())
 
-@app.get("/ocsope/error")
+@app.get("/oscope/error")
 async def get_error() -> str:
     if dm.selected["oscope"] is not None:
         return dm.selected["oscope"].show_error()

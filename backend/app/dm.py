@@ -20,7 +20,6 @@ class DeviceManager:
     def find_device_strs(self, models: list[str]) -> list[str]:
         resources = self.rm.list_resources()
 
-        print(resources)
         def is_valid_device(s: str) -> bool:
             for model in models:
                 if model in s:

@@ -1,15 +1,15 @@
 <script lang="ts">
-	import { type Cosine, type Device } from '$lib/types';
+	import { type Device } from '$lib/types';
 
 	const DEVICE_TYPES: DeviceIndex[] = ['oscope', 'fgen'] as const;
 	type DeviceIndex = 'oscope' | 'fgen';
 
-	let cos1 = $state<Cosine | null>(null);
-	let cos2 = $state<Cosine | null>(null);
-
 	let devices = $state<Record<DeviceIndex, Device[]>>({ oscope: [], fgen: [] });
 	let selected = $state<Record<DeviceIndex, number>>({ oscope: -1, fgen: -1 });
 	let lastStrs = $state<Record<DeviceIndex, string | null>>({ oscope: null, fgen: null });
+	let circuitConnected = $state<boolean>(false);
+	let data = $state<number[] | null>(null);
+	let awaitingAnalysis = $state<boolean>(false);
 
 	const updateDevices = async () => {
 		const response = JSON.parse(await fetch('http://localhost:8000/update').then((r) => r.json()));
@@ -56,40 +56,23 @@
 		await fetch(`http://localhost:8000/put/${type}/${res_str}`, { method: 'PUT' });
 	};
 
-	const updateCosines = async () => {
-		if (selected.oscope === -1) return;
-
-		const response1 = await fetch('http://localhost:8000/oscope/sinusoid/CHAN1').then((r) =>
-			r.json()
-		);
-		cos1 = JSON.parse(response1);
-
-		const response2 = await fetch('http://localhost:8000/oscope/sinusoid/CHAN2').then((r) =>
-			r.json()
-		);
-		cos2 = JSON.parse(response2);
-	};
-
-	const sineWave = async () => {
-		await fetch('http://localhost:8000/fgen/apply/SIN/1.0E+3/1.0E+1');
-	};
-	const squareWave = async () => {
-		await fetch('http://localhost:8000/fgen/apply/SQU/1.0E+3/1.0E+1');
-	};
-	const ramp = async () => {
-		await fetch('http://localhost:8000/fgen/apply/RAMP/1.0E+3/1.0E+1');
-	};
-	const pulse = async () => {
-		await fetch('http://localhost:8000/fgen/pulse/5.0E-1');
-	};
-
 	// Runs every 3 seconds
 	const update = async () => {
+		if (awaitingAnalysis) return;
 		await updateDevices();
-		await updateCosines();
 	};
 
-	// Update every 3 seconds
+	const analyzeCircuit = async () => {
+		awaitingAnalysis = true;
+
+		const response = JSON.parse(await fetch(`http://localhost:8000/analyze`).then((r) => r.json()));
+		data = response.data;
+		console.log(response.samplingPeriod);
+
+		awaitingAnalysis = false;
+	};
+
+	// Update every 3 sec
 	$effect(() => {
 		const interval = setInterval(update, 3000);
 
@@ -110,51 +93,45 @@
 	});
 </script>
 
-{#each DEVICE_TYPES as type}
-	<div>
-		<div>Select {type === 'oscope' ? 'Oscilloscope' : 'Function Generator'}</div>
-		<select bind:value={selected[type]}>
-			{#if selected[type] === -1}
-				<option
-					value={-1}
-					disabled
-					selected
-					hidden
-					placeholder="Choose a {type === 'oscope' ? 'scope' : 'generator'}..."
-					>Choose a {type === 'oscope' ? 'scope' : 'generator'}...</option
-				>
-			{/if}
-			{#each devices[type] as device, i}
-				<option value={i}>{device.manufacturer} {device.model}</option>
-			{/each}
-		</select>
-	</div>
-{/each}
-
-{#each [cos1, cos2] as cos, i}
-	{#if cos !== null}
+<div>
+	{#each DEVICE_TYPES as type}
 		<div>
-			<math>
-				<msub>
-					<mi>V</mi>
-					<mn>{i + 1}</mn>
-				</msub>
-				<mo>=</mo>
-				<mi>{cos?.amplitude}cos</mi>
-				<mo>(</mo>
-				<mi>2&pi;</mi>
-				<mo>*</mo>
-				<mi>{cos?.frequency}t</mi>
-				<mo>+</mo>
-				<mi>{cos?.phase}</mi>
-				<mo>)</mo>
-			</math>
+			<div>Select {type === 'oscope' ? 'Oscilloscope' : 'Function Generator'}</div>
+			<select bind:value={selected[type]}>
+				{#if selected[type] === -1}
+					<option
+						value={-1}
+						disabled
+						selected
+						hidden
+						placeholder="Choose a {type === 'oscope' ? 'scope' : 'generator'}..."
+						>Choose a {type === 'oscope' ? 'scope' : 'generator'}...</option
+					>
+				{/if}
+				{#each devices[type] as device, i}
+					<option value={i}>{device.manufacturer} {device.model}</option>
+				{/each}
+			</select>
+		</div>
+	{/each}
+
+	<div>
+		<label for="circuitConnected">Circuit connected</label>
+		<input
+			bind:checked={circuitConnected}
+			name="circuitConnected"
+			title="Circuit connected"
+			type="checkbox"
+		/>
+	</div>
+	<button
+		onclick={analyzeCircuit}
+		disabled={selected.fgen === -1 || selected.oscope === -1 || !circuitConnected}
+		>Analyze Circuit</button
+	>
+	{#if data !== null}
+		<div>
+			{data}
 		</div>
 	{/if}
-{/each}
-{#if selected.fgen !== -1}
-	<button onclick={sineWave}>Sine Wave!</button>
-	<button onclick={squareWave}>Square Wave!</button>
-	<button onclick={ramp}>Ramp!</button>
-	<button onclick={pulse}>Pulse!</button>
-{/if}
+</div>

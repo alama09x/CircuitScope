@@ -1,5 +1,3 @@
-from pyvisa import ResourceManager
-
 from .device import Device
 from .sinusoid import Cosine
 

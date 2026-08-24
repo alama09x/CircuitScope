@@ -12,7 +12,7 @@ class Device:
         self.idn: str = self.res.query("*IDN?")
         [self.manufacturer, self.model, self.serial_number, self.firmware_revision] = self.idn.split(",")
 
-    def to_obj(self) -> dict:
+    def to_json(self) -> dict:
         return {
             "resStr": self.res_str,
             "manufacturer": self.manufacturer,
