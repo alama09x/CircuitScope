@@ -8,7 +8,8 @@
 	let selected = $state<Record<DeviceIndex, number>>({ oscope: -1, fgen: -1 });
 	let lastStrs = $state<Record<DeviceIndex, string | null>>({ oscope: null, fgen: null });
 	let circuitConnected = $state<boolean>(false);
-	let data = $state<number[] | null>(null);
+	let vData = $state<number[] | null>(null);
+	let tData = $state<number[] | null>(null);
 	let awaitingAnalysis = $state<boolean>(false);
 
 	const updateDevices = async () => {
@@ -66,7 +67,8 @@
 		awaitingAnalysis = true;
 
 		const response = JSON.parse(await fetch(`http://localhost:8000/analyze`).then((r) => r.json()));
-		data = response.data;
+		vData = response.vData;
+		tData = response.tData;
 		console.log(response.samplingPeriod);
 
 		awaitingAnalysis = false;
@@ -129,9 +131,12 @@
 		disabled={selected.fgen === -1 || selected.oscope === -1 || !circuitConnected}
 		>Analyze Circuit</button
 	>
-	{#if data !== null}
+	{#if vData !== null && tData !== null}
 		<div>
-			{data}
+			{vData}
+		</div>
+		<div>
+			{tData}
 		</div>
 	{/if}
 </div>
