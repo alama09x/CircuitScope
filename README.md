@@ -9,19 +9,24 @@ Automatic RC/RLC filter classifier
 The function generator sends voltage signals (square waves) through the blue and red ports in the back.  The red-yellow-black connector plugs into any one of four circuits: the RC Low Pass, RC High Pass, RLC Low Pass, and RLC High Pass filters.
 
 <br>
+
 The input and output voltage are measured by probes connecting to the oscilloscope, which can accurately measure voltage data at the nanosecond scale.
 
 <br>
-The computer program connects to the function generator and oscilloscope.  It sends commands through them to setup each instrument.  This tells the function generator to send square wave into the connected filter.  The output is measured by the oscilloscope and read by the computer.
+
+The computer program connects to the function generator and oscilloscope. It sends commands through them to setup each instrument. This tells the function generator to send square wave into the connected filter. The output is measured by the oscilloscope and read by the computer.
 
 <br>
+
 I created an algorithm that sets the scale of the oscilloscope using a trial-and-error test: zoom in and measure until the last 10% of data stops averaging zero.
 
 <br>
-The finished project would then perform a data regression of the data onto each of my mathematically derived models.  Using linear algebra to decipher multidimensional errors, the program would identify the correct model and estimate the component values.
+
+The finished project would then perform a data regression of the data onto each of my mathematically derived models. Using linear algebra to decipher multidimensional errors, the program would identify the correct model and estimate the component values.
 
 <br>
-Unfortunately, my function generator (at least 25 years old) broke down before I could finish my work.  Now it cannot output waves, so my oscilloscope cannot read the output.
+
+Unfortunately, my function generator (at least 25 years old) broke down before I could finish my work. Now it cannot output waves, so my oscilloscope cannot read the output.
 
 <br>
 
@@ -30,6 +35,7 @@ Unfortunately, my function generator (at least 25 years old) broke down before I
 After turning on my lab instruments, plugging them into my computer, and connecting one of the filters, I could click the "Analyze Circuit" button on the web interface. This caused the function generator to send square wave signals into the filter. The output was measured by the oscilloscope, which entered my auto-scaling algorithm. Once the scale was set, the computer read the oscilloscope data. It used a Python library (SciPy) to fit the data to each of my derived models. The program could choose the right model for a few of the filters, and I was still working on it when my function generator completely stopped working. Overall, the project was still a great success in teaching me electrical engineering, and no hour went to waste.
 
 <br>
+
 Also see the conclusion in the lab notes.
 
 ## Lab Notes
@@ -67,6 +73,7 @@ After fifteen pages of work, I created this table aggregating the equations I de
 The top of the page shows a potential set of component values calculated by the computer regression.
 
 <br>
+
 The conclusion describes what I learned, what I created, and why I stopped.
 
 ## First RLC Oscillator Circuit Notes
